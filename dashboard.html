@@ -1,0 +1,1610 @@
+<!DOCTYPE html>
+<html lang="th" class="dark">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Coffee Sales Analytics - Professional Interactive Dashboard</title>
+  
+  <!-- Local & Fallback CDN Libraries -->
+  <script src="assets/tailwind.min.js"></script>
+  <script src="assets/apexcharts.min.js"></script>
+  <script>
+    // Fallback if local assets fail to load
+    if (typeof tailwind === 'undefined') {
+      document.write('<script src="https://cdn.tailwindcss.com"><\/script>');
+    }
+    if (typeof ApexCharts === 'undefined') {
+      document.write('<script src="https://cdn.jsdelivr.net/npm/apexcharts"><\/script>');
+    }
+  </script>
+  
+  <!-- Google Fonts: Inter & Prompt (Bilingual Thai/English) -->
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700;800&family=Prompt:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+  
+  <style>
+    body {
+      font-family: 'Plus Jakarta Sans', 'Prompt', sans-serif;
+    }
+    /* Custom scrollbar */
+    ::-webkit-scrollbar {
+      width: 8px;
+      height: 8px;
+    }
+    ::-webkit-scrollbar-track {
+      background: rgba(15, 23, 42, 0.6);
+    }
+    ::-webkit-scrollbar-thumb {
+      background: rgba(100, 116, 139, 0.4);
+      border-radius: 4px;
+    }
+    ::-webkit-scrollbar-thumb:hover {
+      background: rgba(148, 163, 184, 0.6);
+    }
+    .glass-card {
+      background: rgba(30, 41, 59, 0.7);
+      backdrop-filter: blur(12px);
+      -webkit-backdrop-filter: blur(12px);
+      border: 1px solid rgba(255, 255, 255, 0.08);
+    }
+    .glass-card-hover:hover {
+      border-color: rgba(99, 102, 241, 0.4);
+      box-shadow: 0 10px 25px -5px rgba(99, 102, 241, 0.1);
+    }
+    .gradient-text {
+      background: linear-gradient(135deg, #38bdf8 0%, #818cf8 50%, #c084fc 100%);
+      -webkit-background-clip: text;
+      -webkit-text-fill-color: transparent;
+    }
+    .badge-glow-amber {
+      box-shadow: 0 0 15px rgba(245, 158, 11, 0.25);
+    }
+    .badge-glow-indigo {
+      box-shadow: 0 0 15px rgba(99, 102, 241, 0.25);
+    }
+    .badge-glow-emerald {
+      box-shadow: 0 0 15px rgba(16, 185, 129, 0.25);
+    }
+    /* ApexCharts dark mode override */
+    .apexcharts-canvas {
+      margin: 0 auto;
+    }
+    .apexcharts-tooltip.apexcharts-theme-dark {
+      background: #0f172a !important;
+      border: 1px solid #334155 !important;
+      box-shadow: 0 10px 25px -5px rgba(0, 0, 0, 0.5) !important;
+    }
+    @media print {
+      body {
+        background: white !important;
+        color: black !important;
+      }
+      .no-print {
+        display: none !important;
+      }
+      .glass-card {
+        background: white !important;
+        border: 1px solid #ccc !important;
+        color: black !important;
+      }
+    }
+  </style>
+
+  <!-- Load dataset -->
+  <script src="data.js"></script>
+</head>
+<body class="bg-slate-950 text-slate-100 min-h-screen antialiased selection:bg-indigo-500 selection:text-white">
+
+  <!-- Top Announcement Bar -->
+  <div class="no-print bg-gradient-to-r from-indigo-900/60 via-purple-900/40 to-slate-900/80 border-b border-indigo-500/20 px-4 py-2 text-xs text-indigo-200 flex items-center justify-between">
+    <div class="flex items-center space-x-2">
+      <span class="inline-block w-2 h-2 rounded-full bg-emerald-400 animate-pulse"></span>
+      <span class="font-medium">รายงานสรุปข้อมูลยอดขายสินค้าเครื่องดื่ม (Coffee Sales Executive Analysis)</span>
+      <span class="text-slate-400 hidden sm:inline">| อ้างอิงชุดข้อมูล: archive/index_1.csv และ archive/index_2.csv</span>
+    </div>
+    <div class="flex items-center space-x-3 text-slate-300">
+      <span>รวมทั้งหมด <strong class="text-emerald-400" id="ann-total-records">3,898</strong> รายการ</span>
+      <span>•</span>
+      <span>ช่วงเวลา: <strong>มี.ค. 2024 - มี.ค. 2025</strong></span>
+    </div>
+  </div>
+
+  <!-- Header -->
+  <header class="border-b border-slate-800/80 bg-slate-900/50 backdrop-blur-md sticky top-0 z-40">
+    <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-3.5">
+      <div class="flex flex-col md:flex-row md:items-center md:justify-between gap-4">
+        <!-- Logo & Title -->
+        <div class="flex items-center space-x-3.5">
+          <div class="w-11 h-11 rounded-xl bg-gradient-to-br from-indigo-500 via-purple-600 to-pink-500 p-0.5 shadow-lg shadow-indigo-500/20 flex items-center justify-center">
+            <div class="w-full h-full bg-slate-950 rounded-[10px] flex items-center justify-center">
+              <svg class="w-6 h-6 text-indigo-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M18 8h1a4 4 0 0 1 0 8h-1M2 8h16v9a4 4 0 0 1-4 4H6a4 4 0 0 1-4-4V8zM6 1v3M10 1v3M14 1v3" />
+              </svg>
+            </div>
+          </div>
+          <div>
+            <div class="flex items-center space-x-2">
+              <h1 class="text-xl sm:text-2xl font-bold tracking-tight text-white flex items-center gap-2">
+                Coffee Sales <span class="gradient-text">Interactive Dashboard</span>
+              </h1>
+              <span class="px-2 py-0.5 text-[11px] font-semibold uppercase tracking-wider rounded-md bg-indigo-500/10 text-indigo-400 border border-indigo-500/20">Executive Pro</span>
+            </div>
+            <p class="text-xs text-slate-400 mt-0.5">
+              วิเคราะห์ความนิยมสินค้าจากมากที่สุดไปน้อยที่สุด • เปรียบเทียบแนวโน้มรายปี • ฟังก์ชันตัวกรองแบบเลือกได้
+            </p>
+          </div>
+        </div>
+
+        <!-- Action Buttons -->
+        <div class="no-print flex items-center flex-wrap gap-2">
+          <button id="btn-export-csv" class="px-3 py-1.5 rounded-lg text-xs font-medium bg-slate-800 hover:bg-slate-700 text-slate-200 border border-slate-700 hover:border-slate-600 transition flex items-center gap-1.5 shadow-sm">
+            <svg class="w-3.5 h-3.5 text-emerald-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 10v6m0 0l-3-3m3 3l3-3m2 8H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z" />
+            </svg>
+            <span>ส่งออก CSV</span>
+          </button>
+          
+          <button onclick="window.print()" class="px-3 py-1.5 rounded-lg text-xs font-medium bg-slate-800 hover:bg-slate-700 text-slate-200 border border-slate-700 hover:border-slate-600 transition flex items-center gap-1.5 shadow-sm">
+            <svg class="w-3.5 h-3.5 text-indigo-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17 17h2a2 2 0 002-2v-4a2 2 0 00-2-2H5a2 2 0 00-2 2v4a2 2 0 002 2h2m2 4h6a2 2 0 002-2v-4a2 2 0 00-2-2H9a2 2 0 00-2 2v4a2 2 0 002 2zm8-12V5a2 2 0 00-2-2H9a2 2 0 00-2 2v4h10z" />
+            </svg>
+            <span>พิมพ์ / PDF</span>
+          </button>
+
+          <button id="btn-reset-filters" class="px-3 py-1.5 rounded-lg text-xs font-medium bg-indigo-600/20 hover:bg-indigo-600/30 text-indigo-300 border border-indigo-500/30 transition flex items-center gap-1.5">
+            <svg class="w-3.5 h-3.5 text-indigo-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15" />
+            </svg>
+            <span>รีเซ็ตตัวกรอง</span>
+          </button>
+        </div>
+      </div>
+    </div>
+  </header>
+
+  <!-- Main Content Container -->
+  <main class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-6 space-y-6">
+
+    <!-- Interactive Filter Toolbar (ฟังค์ชั่นที่สามารถเลือกได้) -->
+    <div class="no-print glass-card rounded-2xl p-4 sm:p-5 shadow-xl space-y-4 border border-slate-800">
+      <div class="flex items-center justify-between flex-wrap gap-2 border-b border-slate-800 pb-3">
+        <div class="flex items-center space-x-2">
+          <div class="w-2.5 h-2.5 rounded-full bg-indigo-500"></div>
+          <h2 class="text-sm font-semibold text-white tracking-wide uppercase">ตัวกรองข้อมูลเชิงโต้ตอบ (Interactive Filter Controls)</h2>
+        </div>
+        <div class="text-xs text-slate-400 flex items-center gap-2">
+          <span>กำลังแสดงผล:</span>
+          <span id="filter-status-text" class="px-2 py-0.5 rounded bg-indigo-950/80 border border-indigo-700/50 text-indigo-300 font-medium">ทุกปี • รวมทุกเครื่อง • ทุกช่องทาง</span>
+        </div>
+      </div>
+
+      <!-- Filter Controls Grid -->
+      <div class="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-6 gap-3">
+        
+        <!-- Filter 1: ปี (Year) -->
+        <div class="space-y-1.5">
+          <label class="text-xs font-medium text-slate-300 flex items-center justify-between">
+            <span>📅 ปีที่ขาย (Year)</span>
+          </label>
+          <div class="grid grid-cols-3 gap-1 bg-slate-900 p-1 rounded-xl border border-slate-800 text-xs">
+            <button class="filter-year-btn py-1.5 px-2 rounded-lg text-center transition font-medium bg-indigo-600 text-white shadow-sm" data-year="all">ทั้งหมด</button>
+            <button class="filter-year-btn py-1.5 px-2 rounded-lg text-center transition font-medium text-slate-400 hover:text-white" data-year="2024">2024</button>
+            <button class="filter-year-btn py-1.5 px-2 rounded-lg text-center transition font-medium text-slate-400 hover:text-white" data-year="2025">2025</button>
+          </div>
+        </div>
+
+        <!-- Filter 2: เครื่อง / ช่องทาง (Machine / Source) -->
+        <div class="space-y-1.5">
+          <label class="text-xs font-medium text-slate-300">
+            🏢 เครื่องขาย (Machine)
+          </label>
+          <select id="filter-source" class="w-full bg-slate-900 border border-slate-800 text-slate-200 text-xs rounded-xl px-3 py-2 focus:ring-2 focus:ring-indigo-500 focus:outline-none transition">
+            <option value="all">รวมทุกเครื่อง (3,898 รายการ)</option>
+            <option value="m1">เครื่องที่ 1 (Machine 1 - 3,636 รายการ)</option>
+            <option value="m2">เครื่องที่ 2 (Machine 2 - 262 รายการ)</option>
+          </select>
+        </div>
+
+        <!-- Filter 3: ช่องทางชำระเงิน (Payment Type) -->
+        <div class="space-y-1.5">
+          <label class="text-xs font-medium text-slate-300">
+            💳 ชำระเงิน (Payment)
+          </label>
+          <select id="filter-payment" class="w-full bg-slate-900 border border-slate-800 text-slate-200 text-xs rounded-xl px-3 py-2 focus:ring-2 focus:ring-indigo-500 focus:outline-none transition">
+            <option value="all">ทุกรูปแบบ (Card + Cash)</option>
+            <option value="card">บัตรเครดิต/เดบิต (Card)</option>
+            <option value="cash">เงินสด (Cash)</option>
+          </select>
+        </div>
+
+        <!-- Filter 4: เกณฑ์แสดงผล (Metric: Units vs Revenue) -->
+        <div class="space-y-1.5">
+          <label class="text-xs font-medium text-slate-300">
+            📊 มิติข้อมูลหลัก (Metric)
+          </label>
+          <div class="grid grid-cols-2 gap-1 bg-slate-900 p-1 rounded-xl border border-slate-800 text-xs">
+            <button id="metric-units-btn" class="metric-btn py-1.5 px-2 rounded-lg text-center transition font-medium bg-indigo-600 text-white shadow-sm" data-metric="units">จำนวนแก้ว</button>
+            <button id="metric-rev-btn" class="metric-btn py-1.5 px-2 rounded-lg text-center transition font-medium text-slate-400 hover:text-white" data-metric="revenue">ยอดขาย (฿)</button>
+          </div>
+        </div>
+
+        <!-- Filter 5: ขอบเขตอันดับ (Top N Ranking) -->
+        <div class="space-y-1.5">
+          <label class="text-xs font-medium text-slate-300">
+            🏆 จำนวนอันดับ (Display Range)
+          </label>
+          <select id="filter-top-n" class="w-full bg-slate-900 border border-slate-800 text-slate-200 text-xs rounded-xl px-3 py-2 focus:ring-2 focus:ring-indigo-500 focus:outline-none transition">
+            <option value="5">Top 5 อันดับแรก</option>
+            <option value="10" selected>Top 10 อันดับแรก</option>
+            <option value="15">Top 15 อันดับ</option>
+            <option value="all">ทั้งหมด (32 รายการ)</option>
+          </select>
+        </div>
+
+        <!-- Filter 6: ลำดับความนิยม (Sort Direction: Most to Least vs Least to Most) -->
+        <div class="space-y-1.5">
+          <label class="text-xs font-medium text-slate-300">
+            ↕️ ลำดับความนิยม (Order)
+          </label>
+          <select id="filter-sort-order" class="w-full bg-slate-900 border border-slate-800 text-slate-200 text-xs rounded-xl px-3 py-2 focus:ring-2 focus:ring-indigo-500 focus:outline-none transition">
+            <option value="desc">🔥 มากที่สุด ➡️ น้อยที่สุด</option>
+            <option value="asc">❄️ น้อยที่สุด ➡️ มากที่สุด</option>
+          </select>
+        </div>
+
+      </div>
+
+      <!-- Quick Search Bar & Active Filters -->
+      <div class="pt-2 flex flex-col sm:flex-row items-center justify-between gap-3 border-t border-slate-800/80">
+        <div class="relative w-full sm:w-80">
+          <input type="text" id="search-product" placeholder="ค้นหาชื่อเมนูเครื่องดื่ม (เช่น Latte, Americano)..." 
+                 class="w-full bg-slate-900 border border-slate-800 text-xs text-slate-200 rounded-xl pl-8 pr-3 py-2 focus:outline-none focus:border-indigo-500 transition">
+          <svg class="w-3.5 h-3.5 text-slate-400 absolute left-2.5 top-3" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z" />
+          </svg>
+        </div>
+
+        <div class="flex items-center space-x-2 text-xs text-slate-400 w-full sm:w-auto justify-end">
+          <span id="filtered-count-badge" class="px-2.5 py-1 rounded-lg bg-slate-800 border border-slate-700 text-emerald-400 font-medium">
+            สอดคล้อง 3,898 รายการขาย (100%)
+          </span>
+        </div>
+      </div>
+    </div>
+
+    <!-- Executive KPI Cards Grid -->
+    <section class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
+      
+      <!-- KPI 1: ยอดขายรวม -->
+      <div class="glass-card glass-card-hover rounded-2xl p-5 relative overflow-hidden transition-all duration-300">
+        <div class="absolute -right-4 -top-4 w-24 h-24 bg-indigo-500/10 rounded-full blur-xl pointer-events-none"></div>
+        <div class="flex items-start justify-between">
+          <div>
+            <p class="text-xs font-medium text-slate-400">ยอดขายรวมทั้งหมด (Total Revenue)</p>
+            <h3 id="kpi-total-revenue" class="text-2xl sm:text-3xl font-extrabold text-white mt-1">฿122,321.58</h3>
+          </div>
+          <div class="w-10 h-10 rounded-xl bg-indigo-500/20 text-indigo-400 flex items-center justify-center border border-indigo-500/30">
+            <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8c-1.657 0-3 .895-3 2s1.343 2 3 2 3 .895 3 2-1.343 2-3 2m0-8c1.11 0 2.08.402 2.599 1M12 8V7m0 1v8m0 0v1m0-1c-1.11 0-2.08-.402-2.599-1M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
+            </svg>
+          </div>
+        </div>
+        <div class="mt-4 flex items-center justify-between text-xs text-slate-400 border-t border-slate-800/80 pt-3">
+          <span>ปี 2024: <strong class="text-slate-200" id="kpi-rev-2024">฿85,830.80</strong></span>
+          <span>ปี 2025: <strong class="text-slate-200" id="kpi-rev-2025">฿36,490.78</strong></span>
+        </div>
+      </div>
+
+      <!-- KPI 2: จำนวนแก้วรวม -->
+      <div class="glass-card glass-card-hover rounded-2xl p-5 relative overflow-hidden transition-all duration-300">
+        <div class="absolute -right-4 -top-4 w-24 h-24 bg-emerald-500/10 rounded-full blur-xl pointer-events-none"></div>
+        <div class="flex items-start justify-between">
+          <div>
+            <p class="text-xs font-medium text-slate-400">จำนวนแก้วที่ขายได้ (Volume Sold)</p>
+            <h3 id="kpi-total-units" class="text-2xl sm:text-3xl font-extrabold text-white mt-1">3,898 <span class="text-sm font-normal text-slate-400">แก้ว</span></h3>
+          </div>
+          <div class="w-10 h-10 rounded-xl bg-emerald-500/20 text-emerald-400 flex items-center justify-center border border-emerald-500/30">
+            <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 11H5m14 0a2 2 0 012 2v6a2 2 0 01-2 2H5a2 2 0 01-2-2v-6a2 2 0 012-2m14 0V9a2 2 0 00-2-2M5 11V9a2 2 0 012-2m0 0V5a2 2 0 012-2h6a2 2 0 012 2v2M7 7h10" />
+            </svg>
+          </div>
+        </div>
+        <div class="mt-4 flex items-center justify-between text-xs text-slate-400 border-t border-slate-800/80 pt-3">
+          <span>ปี 2024: <strong class="text-slate-200" id="kpi-units-2024">2,693 แก้ว</strong></span>
+          <span>ปี 2025: <strong class="text-slate-200" id="kpi-units-2025">1,205 แก้ว</strong></span>
+        </div>
+      </div>
+
+      <!-- KPI 3: ราคาเฉลี่ยต่อแก้ว -->
+      <div class="glass-card glass-card-hover rounded-2xl p-5 relative overflow-hidden transition-all duration-300">
+        <div class="absolute -right-4 -top-4 w-24 h-24 bg-purple-500/10 rounded-full blur-xl pointer-events-none"></div>
+        <div class="flex items-start justify-between">
+          <div>
+            <p class="text-xs font-medium text-slate-400">ราคาเฉลี่ยต่อแก้ว (Avg Ticket Price)</p>
+            <h3 id="kpi-avg-price" class="text-2xl sm:text-3xl font-extrabold text-white mt-1">฿31.38</h3>
+          </div>
+          <div class="w-10 h-10 rounded-xl bg-purple-500/20 text-purple-400 flex items-center justify-center border border-purple-500/30">
+            <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M7 7h.01M7 3h5c.512 0 1.024.195 1.414.586l7 7a2 2 0 010 2.828l-7 7a2 2 0 01-2.828 0l-7-7A1.994 1.994 0 013 12V7a4 4 0 014-4z" />
+            </svg>
+          </div>
+        </div>
+        <div class="mt-4 flex items-center justify-between text-xs text-slate-400 border-t border-slate-800/80 pt-3">
+          <span>ช่องทางบัตร: <strong class="text-emerald-400" id="kpi-card-percent">95.7%</strong></span>
+          <span>เงินสด: <strong class="text-slate-200" id="kpi-cash-percent">4.3%</strong></span>
+        </div>
+      </div>
+
+      <!-- KPI 4: สินค้าขายดีอันดับ 1 -->
+      <div class="glass-card glass-card-hover rounded-2xl p-5 relative overflow-hidden transition-all duration-300">
+        <div class="absolute -right-4 -top-4 w-24 h-24 bg-amber-500/10 rounded-full blur-xl pointer-events-none"></div>
+        <div class="flex items-start justify-between">
+          <div>
+            <p class="text-xs font-medium text-slate-400">สินค้าขายดีอันดับ 1 (Best Seller)</p>
+            <h3 id="kpi-top-product" class="text-xl sm:text-2xl font-extrabold text-amber-300 mt-1 truncate max-w-[190px]">Americano with Milk</h3>
+          </div>
+          <div class="w-10 h-10 rounded-xl bg-amber-500/20 text-amber-400 flex items-center justify-center border border-amber-500/30 badge-glow-amber">
+            <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 3v4M3 5h4M6 17v4m-2-2h4m5-16l2.286 6.857L21 12l-5.714 2.143L13 21l-2.286-6.857L5 12l5.714-2.143L13 3z" />
+            </svg>
+          </div>
+        </div>
+        <div class="mt-4 flex items-center justify-between text-xs text-slate-400 border-t border-slate-800/80 pt-3">
+          <span id="kpi-top-units">จำนวน 868 แก้ว (22.3%)</span>
+          <span class="text-emerald-400" id="kpi-top-rev">฿26,369.12</span>
+        </div>
+      </div>
+
+    </section>
+
+    <!-- SECTION 1: จัดอันดับความนิยมสินค้า จากมากที่สุดไปถึงน้อยที่สุด -->
+    <section class="space-y-4">
+      <div class="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-2">
+        <div>
+          <div class="flex items-center space-x-2">
+            <span class="px-2.5 py-0.5 rounded-md bg-indigo-500/20 text-indigo-300 text-xs font-bold border border-indigo-500/30">SECTION 1</span>
+            <h2 class="text-lg sm:text-xl font-bold text-white">เปรียบเทียบรายการขาย: นิยมมากที่สุด ➡️ น้อยที่สุด</h2>
+          </div>
+          <p class="text-xs text-slate-400 mt-1">
+            จัดอันดับเครื่องดื่มตามผลงานยอดขาย พร้อมสัดส่วนมาร์เก็ตแชร์ของแต่ละเมนู สามารถเลือกสลับเกณฑ์จำนวนแก้วหรือรายได้
+          </p>
+        </div>
+        
+        <div class="flex items-center space-x-2 text-xs">
+          <span class="text-slate-400">มุมมองกราฟ:</span>
+          <button id="btn-chart-view-bar" class="px-2.5 py-1 rounded-lg bg-indigo-600 text-white font-medium shadow-sm">Horizontal Bar</button>
+          <button id="btn-chart-view-treemap" class="px-2.5 py-1 rounded-lg bg-slate-800 text-slate-300 hover:text-white border border-slate-700">Treemap Share</button>
+        </div>
+      </div>
+
+      <div class="grid grid-cols-1 lg:grid-cols-3 gap-6">
+        
+        <!-- Main Popularity Bar Chart (2 Cols) -->
+        <div class="lg:col-span-2 glass-card rounded-2xl p-5 border border-slate-800 shadow-xl">
+          <div class="flex items-center justify-between mb-4 pb-2 border-b border-slate-800">
+            <div>
+              <h3 id="popularity-chart-title" class="text-sm font-semibold text-white flex items-center gap-2">
+                <span>📊 กราฟเปรียบเทียบอันดับความนิยมเครื่องดื่ม</span>
+                <span id="popularity-chart-badge" class="text-[11px] font-normal px-2 py-0.5 rounded bg-indigo-900/60 text-indigo-300 border border-indigo-700/50">Top 10 รายการ</span>
+              </h3>
+              <p class="text-[11px] text-slate-400 mt-0.5">คลิกที่แท่งกราฟเพื่อดูรายละเอียดและสัดส่วนยอดขาย</p>
+            </div>
+            <div class="text-xs text-slate-400 flex items-center gap-1">
+              <span class="w-2.5 h-2.5 rounded-full bg-emerald-400"></span>
+              <span id="popularity-metric-label">จำนวนแก้วที่ขายได้</span>
+            </div>
+          </div>
+
+          <div id="popularity-bar-chart" class="w-full h-[420px]"></div>
+        </div>
+
+        <!-- Popularity Market Share Donut & Insights (1 Col) -->
+        <div class="space-y-4">
+          <div class="glass-card rounded-2xl p-5 border border-slate-800 shadow-xl">
+            <div class="mb-3 pb-2 border-b border-slate-800 flex items-center justify-between">
+              <h3 class="text-sm font-semibold text-white">🍩 สัดส่วนยอดขาย (Market Share)</h3>
+              <span class="text-[11px] text-slate-400">Top 5 เทียบทั้งหมด</span>
+            </div>
+            <div id="popularity-donut-chart" class="w-full h-[260px]"></div>
+          </div>
+
+          <!-- Pareto 80/20 Insight Card -->
+          <div class="glass-card rounded-2xl p-4 border border-indigo-500/20 bg-gradient-to-br from-indigo-950/40 via-slate-900 to-slate-900 shadow-lg">
+            <div class="flex items-start space-x-3">
+              <div class="w-8 h-8 rounded-lg bg-indigo-500/20 text-indigo-300 flex items-center justify-center shrink-0 mt-0.5">
+                <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 7h8m0 0v8m0-8l-8 8-4-4-6 6" />
+                </svg>
+              </div>
+              <div class="space-y-1">
+                <h4 class="text-xs font-bold text-white uppercase tracking-wider">Pareto Rule 80/20 Analysis</h4>
+                <p class="text-xs text-slate-300 leading-relaxed">
+                  เครื่องดื่มยอดนิยมเพียง <strong class="text-amber-400">4 เมนูแรก</strong> (Americano with Milk, Latte, Americano, Cappuccino) 
+                  สร้างยอดขายคิดเป็น <strong class="text-emerald-400">71.4%</strong> ของจำนวนแก้วทั้งหมด และสร้างรายได้ถึง <strong class="text-emerald-400">72.7%</strong> ของยอดขายรวม!
+                </p>
+                <div class="pt-2 text-[11px] text-indigo-300 flex items-center gap-1.5">
+                  <span>💡 เมนูหางยาว (Long-tail) 24 เมนูด้านล่าง มีส่วนแบ่งรวมกันเพียง 7.3%</span>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+
+      </div>
+    </section>
+
+    <!-- SECTION 2: เปรียบเทียบยอดขายรายปี 2024 vs 2025 ที่เชื่อมกับสินค้าที่ได้รับความนิยม -->
+    <section class="space-y-4">
+      <div class="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-2">
+        <div>
+          <div class="flex items-center space-x-2">
+            <span class="px-2.5 py-0.5 rounded-md bg-purple-500/20 text-purple-300 text-xs font-bold border border-purple-500/30">SECTION 2</span>
+            <h2 class="text-lg sm:text-xl font-bold text-white">เปรียบเทียบยอดขายรายปี (2024 vs 2025) ที่เชื่อมโยงกับสินค้า</h2>
+          </div>
+          <p class="text-xs text-slate-400 mt-1">
+            วิเคราะห์ความต่อเนื่องและการเติบโตของแต่ละเมนูยอดนิยมข้ามปี 2024 และ 2025 พร้อมแนวโน้มรายเดือน
+          </p>
+        </div>
+
+        <div class="flex items-center space-x-2 text-xs">
+          <span class="text-slate-400">โหมดการเทียบ:</span>
+          <button id="btn-yoy-mode-total" class="px-2.5 py-1 rounded-lg bg-purple-600 text-white font-medium shadow-sm">ยอดรวมสะสมจริง</button>
+          <button id="btn-yoy-mode-velocity" class="px-2.5 py-1 rounded-lg bg-slate-800 text-slate-300 hover:text-white border border-slate-700">อัตราเฉลี่ยต่อเดือน (Run Rate)</button>
+        </div>
+      </div>
+
+      <div class="grid grid-cols-1 lg:grid-cols-3 gap-6">
+        
+        <!-- YoY Grouped Comparison Chart (2 Cols) -->
+        <div class="lg:col-span-2 glass-card rounded-2xl p-5 border border-slate-800 shadow-xl">
+          <div class="flex items-center justify-between mb-4 pb-2 border-b border-slate-800">
+            <div>
+              <h3 id="yoy-chart-title" class="text-sm font-semibold text-white flex items-center gap-2">
+                <span>📈 ยอดขายเครื่องดื่มยอดนิยมเทียบระหว่างปี 2024 vs 2025</span>
+              </h3>
+              <p class="text-[11px] text-slate-400 mt-0.5">แท่งสีฟ้า: ปี 2024 (10 เดือน) | แท่งสีเขียวมรกต: ปี 2025 (~2.8 เดือน)</p>
+            </div>
+            <div class="flex items-center space-x-3 text-xs">
+              <span class="flex items-center gap-1 text-sky-400"><span class="w-2.5 h-2.5 rounded-sm bg-sky-500"></span> 2024</span>
+              <span class="flex items-center gap-1 text-emerald-400"><span class="w-2.5 h-2.5 rounded-sm bg-emerald-500"></span> 2025</span>
+            </div>
+          </div>
+
+          <div id="yoy-grouped-chart" class="w-full h-[380px]"></div>
+        </div>
+
+        <!-- Monthly Trend Line Chart (1 Col) -->
+        <div class="glass-card rounded-2xl p-5 border border-slate-800 shadow-xl flex flex-col justify-between">
+          <div>
+            <div class="mb-3 pb-2 border-b border-slate-800 flex items-center justify-between">
+              <div>
+                <h3 class="text-sm font-semibold text-white">📅 เส้นแนวโน้มยอดขายรายเดือน</h3>
+                <p class="text-[11px] text-slate-400">มีนาคม 2024 - มีนาคม 2025</p>
+              </div>
+              <span class="text-xs px-2 py-0.5 rounded bg-emerald-500/10 text-emerald-400 border border-emerald-500/20 font-medium">13 เดือน</span>
+            </div>
+            <div id="monthly-trend-chart" class="w-full h-[260px]"></div>
+          </div>
+
+          <!-- Trend Highlight Card -->
+          <div class="p-3 rounded-xl bg-slate-900 border border-slate-800 text-xs space-y-1.5 mt-3">
+            <div class="flex items-center justify-between text-slate-300">
+              <span class="font-medium">จุดสูงสุดของยอดขาย (Peak):</span>
+              <span class="text-emerald-400 font-bold">ก.พ. 2025 (561 แก้ว)</span>
+            </div>
+            <div class="flex items-center justify-between text-slate-300">
+              <span class="font-medium">สินค้าเติบโตสูงสุดในปี 2025:</span>
+              <span class="text-sky-400 font-bold">Americano (+177% Run Rate)</span>
+            </div>
+          </div>
+        </div>
+
+      </div>
+
+      <!-- YoY Matrix KPI Cards for Top 4 Drinks -->
+      <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4" id="yoy-product-cards">
+        <!-- Rendered dynamically by JS -->
+      </div>
+    </section>
+
+    <!-- SECTION 3: มิติการวิเคราะห์เชิงลึก (ช่วงเวลาขายดี Peak Hours & วันในสัปดาห์ & จุดขาย) -->
+    <section class="space-y-4">
+      <div class="flex items-center space-x-2">
+        <span class="px-2.5 py-0.5 rounded-md bg-emerald-500/20 text-emerald-300 text-xs font-bold border border-emerald-500/30">SECTION 3</span>
+        <h2 class="text-lg sm:text-xl font-bold text-white">มิติการวิเคราะห์เชิงลึก (Operational & Behavioral Insights)</h2>
+      </div>
+
+      <div class="grid grid-cols-1 md:grid-cols-3 gap-6">
+        
+        <!-- Peak Hours Chart -->
+        <div class="glass-card rounded-2xl p-5 border border-slate-800 shadow-xl">
+          <div class="mb-3 pb-2 border-b border-slate-800 flex items-center justify-between">
+            <div>
+              <h3 class="text-sm font-semibold text-white">⏰ ช่วงเวลาขายดี (Peak Hours)</h3>
+              <p class="text-[11px] text-slate-400">ชั่วโมงที่มียอดสั่งซื้อสูงสุดของวัน</p>
+            </div>
+            <span class="text-xs text-amber-400 font-medium">09:00 - 11:00 น.</span>
+          </div>
+          <div id="peak-hours-chart" class="w-full h-[240px]"></div>
+          <p class="text-[11px] text-slate-400 mt-2 text-center">Peak เช้า (10:00 น. = 363 แก้ว) และ Peak บ่าย (16:00 น. = 307 แก้ว)</p>
+        </div>
+
+        <!-- Day of Week Chart -->
+        <div class="glass-card rounded-2xl p-5 border border-slate-800 shadow-xl">
+          <div class="mb-3 pb-2 border-b border-slate-800 flex items-center justify-between">
+            <div>
+              <h3 class="text-sm font-semibold text-white">📆 ยอดขายตามวันในสัปดาห์ (Day of Week)</h3>
+              <p class="text-[11px] text-slate-400">วันจันทร์ - วันอาทิตย์</p>
+            </div>
+            <span class="text-xs text-sky-400 font-medium">อังคาร & จันทร์ ขายดีสุด</span>
+          </div>
+          <div id="day-of-week-chart" class="w-full h-[240px]"></div>
+          <p class="text-[11px] text-slate-400 mt-2 text-center">วันอังคารมียอดสูงสุด 604 แก้ว รองลงมาคือวันจันทร์ 591 แก้ว</p>
+        </div>
+
+        <!-- Machine 1 vs Machine 2 & Payment Split -->
+        <div class="glass-card rounded-2xl p-5 border border-slate-800 shadow-xl flex flex-col justify-between">
+          <div>
+            <div class="mb-3 pb-2 border-b border-slate-800 flex items-center justify-between">
+              <div>
+                <h3 class="text-sm font-semibold text-white">🏪 จุดจำหน่าย & รูปแบบชำระเงิน</h3>
+                <p class="text-[11px] text-slate-400">Machine 1 vs Machine 2</p>
+              </div>
+            </div>
+            <div id="machine-payment-chart" class="w-full h-[220px]"></div>
+          </div>
+          
+          <div class="space-y-2 pt-3 border-t border-slate-800 text-xs">
+            <div class="flex items-center justify-between text-slate-300">
+              <span>เครื่องขายที่ 1 (Machine 1):</span>
+              <span class="font-bold text-white">3,636 แก้ว (฿115,431.58)</span>
+            </div>
+            <div class="flex items-center justify-between text-slate-300">
+              <span>เครื่องขายที่ 2 (Machine 2):</span>
+              <span class="font-bold text-emerald-400">262 แก้ว (฿6,890.00)</span>
+            </div>
+          </div>
+        </div>
+
+      </div>
+    </section>
+
+    <!-- SECTION 4: ตารางข้อมูลสินค้าแบบละเอียด (Detailed Table) -->
+    <section class="space-y-4">
+      <div class="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-2">
+        <div>
+          <div class="flex items-center space-x-2">
+            <span class="px-2.5 py-0.5 rounded-md bg-amber-500/20 text-amber-300 text-xs font-bold border border-amber-500/30">SECTION 4</span>
+            <h2 class="text-lg sm:text-xl font-bold text-white">ตารางจัดอันดับสินค้าและวิเคราะห์ผลงานแบบละเอียด (All 32 Products)</h2>
+          </div>
+          <p class="text-xs text-slate-400 mt-1">
+            คลิกที่หัวตารางเพื่อจัดเรียงลำดับ (Sort) ตามคอลัมน์ที่ต้องการ พร้อมตัวระบุอันดับ 🥇 🥈 🥉
+          </p>
+        </div>
+
+        <div class="flex items-center space-x-2 text-xs">
+          <input type="text" id="table-search-input" placeholder="กรองในตาราง..." 
+                 class="bg-slate-900 border border-slate-800 text-xs text-slate-200 rounded-lg px-3 py-1.5 focus:outline-none focus:border-indigo-500">
+          <span class="text-slate-400" id="table-row-count">32 รายการ</span>
+        </div>
+      </div>
+
+      <div class="glass-card rounded-2xl border border-slate-800 overflow-hidden shadow-2xl">
+        <div class="overflow-x-auto">
+          <table class="w-full text-left text-xs text-slate-300">
+            <thead class="bg-slate-900/90 text-slate-300 font-semibold border-b border-slate-800 uppercase tracking-wider text-[11px]">
+              <tr>
+                <th class="py-3 px-4 cursor-pointer hover:text-white" onclick="sortTable('rank')">
+                  อันดับ <span class="sort-icon" id="sort-rank-icon">↕️</span>
+                </th>
+                <th class="py-3 px-4 cursor-pointer hover:text-white" onclick="sortTable('name')">
+                  ชื่อเมนูเครื่องดื่ม (Product) <span class="sort-icon" id="sort-name-icon">↕️</span>
+                </th>
+                <th class="py-3 px-4 cursor-pointer hover:text-white text-right" onclick="sortTable('totalUnits')">
+                  จำนวนแก้วรวม <span class="sort-icon" id="sort-totalUnits-icon">⬇️</span>
+                </th>
+                <th class="py-3 px-4 cursor-pointer hover:text-white text-right" onclick="sortTable('totalRevenue')">
+                  ยอดขายรวม (฿) <span class="sort-icon" id="sort-totalRevenue-icon">↕️</span>
+                </th>
+                <th class="py-3 px-4 cursor-pointer hover:text-white text-right" onclick="sortTable('shareUnitsPercent')">
+                  สัดส่วน (%) <span class="sort-icon" id="sort-shareUnitsPercent-icon">↕️</span>
+                </th>
+                <th class="py-3 px-4 cursor-pointer hover:text-white text-right" onclick="sortTable('avgPrice')">
+                  ราคาเฉลี่ย/แก้ว <span class="sort-icon" id="sort-avgPrice-icon">↕️</span>
+                </th>
+                <th class="py-3 px-4 cursor-pointer hover:text-white text-right" onclick="sortTable('y2024Units')">
+                  ปี 2024 (แก้ว) <span class="sort-icon" id="sort-y2024Units-icon">↕️</span>
+                </th>
+                <th class="py-3 px-4 cursor-pointer hover:text-white text-right" onclick="sortTable('y2025Units')">
+                  ปี 2025 (แก้ว) <span class="sort-icon" id="sort-y2025Units-icon">↕️</span>
+                </th>
+                <th class="py-3 px-4 text-center">
+                  การเติบโต YoY
+                </th>
+              </tr>
+            </thead>
+            <tbody id="product-table-body" class="divide-y divide-slate-800/60 font-medium">
+              <!-- Rendered by JS -->
+            </tbody>
+          </table>
+        </div>
+      </div>
+    </section>
+
+    <!-- SECTION 5: บทวิเคราะห์เชิงกลยุทธ์สำหรับผู้บริหาร (Executive Strategic Insights) -->
+    <section class="glass-card rounded-2xl p-6 border border-indigo-500/20 bg-gradient-to-br from-slate-900 via-indigo-950/20 to-slate-900 shadow-xl space-y-4">
+      <div class="flex items-center space-x-2">
+        <span class="px-2.5 py-0.5 rounded-md bg-indigo-500/20 text-indigo-300 text-xs font-bold border border-indigo-500/30">SECTION 5</span>
+        <h2 class="text-base sm:text-lg font-bold text-white">บทวิเคราะห์เชิงกลยุทธ์และข้อเสนอแนะสำหรับผู้บริหาร (Strategic Executive Summary)</h2>
+      </div>
+
+      <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4 pt-2">
+        
+        <div class="p-4 rounded-xl bg-slate-900/80 border border-slate-800 space-y-2">
+          <div class="w-8 h-8 rounded-lg bg-emerald-500/20 text-emerald-400 flex items-center justify-center text-sm font-bold">1</div>
+          <h3 class="text-xs font-bold text-white">4 เสาหลักสร้างยอดขาย (Core Drivers)</h3>
+          <p class="text-xs text-slate-300 leading-relaxed">
+            <strong>Americano with Milk, Latte, Americano, Cappuccino</strong> เป็น 4 เมนูหลักที่ทำยอดขายรวมกันกว่า <strong>71.4%</strong> และสร้างรายได้ <strong>72.7%</strong> ควรมั่นใจว่าวัตถุดิบนมและกาแฟคุณภาพสำหรับ 4 เมนูนี้ต้องพร้อมเสมอ ไม่ขาดสต็อก
+          </p>
+        </div>
+
+        <div class="p-4 rounded-xl bg-slate-900/80 border border-slate-800 space-y-2">
+          <div class="w-8 h-8 rounded-lg bg-sky-500/20 text-sky-400 flex items-center justify-center text-sm font-bold">2</div>
+          <h3 class="text-xs font-bold text-white">การเติบโตของ Americano ในปี 2025</h3>
+          <p class="text-xs text-slate-300 leading-relaxed">
+            เมนู <strong>Americano ธรรมดา</strong> มีอัตราการเติบโตแบบก้าวกระโดดในปี 2025 โดยในเวลาเพียง 2.8 เดือน มียอดขายถึง <strong>259 แก้ว</strong> (เกือบเท่ากับยอดขายทั้งปี 2024 ที่ 334 แก้ว) แสดงถึงกระแสสุขภาพลดน้ำตาลและกาแฟดำที่เพิ่มขึ้น
+          </p>
+        </div>
+
+        <div class="p-4 rounded-xl bg-slate-900/80 border border-slate-800 space-y-2">
+          <div class="w-8 h-8 rounded-lg bg-purple-500/20 text-purple-400 flex items-center justify-center text-sm font-bold">3</div>
+          <h3 class="text-xs font-bold text-white">สังคมไร้เงินสด 95.7% (Cashless Success)</h3>
+          <p class="text-xs text-slate-300 leading-relaxed">
+            ลูกค้าชำระเงินผ่านบัตร (Card) สูงถึง <strong>95.7%</strong> (3,729 รายการ) ในขณะที่เงินสดมีเพียง <strong>4.3%</strong> สะท้อนว่าความเสถียรของระบบเครือข่ายรับชำระอิเล็กทรอนิกส์คือหัวใจสำคัญสูงสุดในการดำเนินงาน
+          </p>
+        </div>
+
+        <div class="p-4 rounded-xl bg-slate-900/80 border border-slate-800 space-y-2">
+          <div class="w-8 h-8 rounded-lg bg-amber-500/20 text-amber-400 flex items-center justify-center text-sm font-bold">4</div>
+          <h3 class="text-xs font-bold text-white">การจัดการเมนูหางยาว (Long-tail Optimization)</h3>
+          <p class="text-xs text-slate-300 leading-relaxed">
+            มีเมนูในเครื่องที่ 2 ถึง <strong>10+ เมนู</strong> ที่มียอดขายรวมต่ำกว่า 5 แก้ว (เช่น Caramel, Double chocolate, Hot milkshake) ควรพิจารณาปรับยุบรวมหรือนำเมนูยอดนิยมมาใส่แทนเพื่อลดความสับสนและเพิ่มอัตราหมุนเวียนสินค้า
+          </p>
+        </div>
+
+      </div>
+    </section>
+
+    <!-- Footer -->
+    <footer class="pt-6 pb-12 border-t border-slate-800/80 text-center text-xs text-slate-500 space-y-1">
+      <p>Coffee Sales Interactive Analytics Dashboard • ออกแบบและประมวลผลข้อมูลอัตโนมัติ</p>
+      <p class="text-[11px] text-slate-600">รองรับการเปิดแบบออฟไลน์ 100% พร้อมตัวกรองและการคำนวณแบบ Client-side</p>
+    </footer>
+
+  </main>
+
+  <!-- Application Logic -->
+  <script>
+    // State management
+    const state = {
+      year: 'all',
+      source: 'all',
+      payment: 'all',
+      metric: 'units', // 'units' or 'revenue'
+      topN: 10,
+      sortOrder: 'desc', // 'desc' (most to least) or 'asc' (least to most)
+      searchTerm: '',
+      tableSearch: '',
+      tableSortCol: 'totalUnits',
+      tableSortAsc: false,
+      chartView: 'bar', // 'bar' or 'treemap'
+      yoyMode: 'total' // 'total' or 'velocity'
+    };
+
+    // Chart instances
+    let popularityChartInstance = null;
+    let popularityDonutInstance = null;
+    let yoyChartInstance = null;
+    let monthlyTrendInstance = null;
+    let peakHoursInstance = null;
+    let dayOfWeekInstance = null;
+    let machinePaymentInstance = null;
+
+    // Filter raw data according to state
+    function getFilteredData() {
+      if (!window.SALES_RAW_DATA) return [];
+      return window.SALES_RAW_DATA.filter(item => {
+        // Year filter
+        if (state.year !== 'all' && item.y !== state.year) return false;
+        // Source filter
+        if (state.source !== 'all' && item.s !== state.source) return false;
+        // Payment filter
+        if (state.payment !== 'all' && item.ct !== state.payment) return false;
+        // Search filter
+        if (state.searchTerm && !item.c.toLowerCase().includes(state.searchTerm.toLowerCase())) return false;
+        return true;
+      });
+    }
+
+    // Aggregate filtered data by product
+    function aggregateProducts(filteredData) {
+      const productMap = {};
+      let totalUnits = filteredData.length;
+      let totalRevenue = 0;
+
+      filteredData.forEach(item => {
+        totalRevenue += item.m;
+        if (!productMap[item.c]) {
+          productMap[item.c] = {
+            name: item.c,
+            totalUnits: 0,
+            totalRevenue: 0,
+            y2024Units: 0,
+            y2024Revenue: 0,
+            y2025Units: 0,
+            y2025Revenue: 0,
+            m1Units: 0,
+            m2Units: 0,
+            prices: []
+          };
+        }
+        const p = productMap[item.c];
+        p.totalUnits++;
+        p.totalRevenue += item.m;
+        p.prices.push(item.m);
+        if (item.y === '2024') {
+          p.y2024Units++;
+          p.y2024Revenue += item.m;
+        } else if (item.y === '2025') {
+          p.y2025Units++;
+          p.y2025Revenue += item.m;
+        }
+        if (item.s === 'm1') p.m1Units++;
+        else p.m2Units++;
+      });
+
+      const list = Object.values(productMap).map(p => {
+        p.totalRevenue = Math.round(p.totalRevenue * 100) / 100;
+        p.y2024Revenue = Math.round(p.y2024Revenue * 100) / 100;
+        p.y2025Revenue = Math.round(p.y2025Revenue * 100) / 100;
+        p.avgPrice = Math.round((p.totalRevenue / p.totalUnits) * 100) / 100;
+        p.shareUnitsPercent = totalUnits > 0 ? Math.round((p.totalUnits / totalUnits) * 1000) / 10 : 0;
+        p.shareRevenuePercent = totalRevenue > 0 ? Math.round((p.totalRevenue / totalRevenue) * 1000) / 10 : 0;
+        return p;
+      });
+
+      // Default sort by popularity (units desc) to establish absolute rank
+      list.sort((a, b) => b.totalUnits - a.totalUnits);
+      list.forEach((p, idx) => { p.rank = idx + 1; });
+
+      return { list, totalUnits, totalRevenue: Math.round(totalRevenue * 100) / 100 };
+    }
+
+    // Update KPI cards
+    function updateKPIs(filteredData, productAgg) {
+      const totalUnits = filteredData.length;
+      const totalRevenue = productAgg.totalRevenue;
+      const avgPrice = totalUnits > 0 ? Math.round((totalRevenue / totalUnits) * 100) / 100 : 0;
+
+      const y2024 = filteredData.filter(x => x.y === '2024');
+      const y2025 = filteredData.filter(x => x.y === '2025');
+      const rev2024 = Math.round(y2024.reduce((acc, c) => acc + c.m, 0) * 100) / 100;
+      const rev2025 = Math.round(y2025.reduce((acc, c) => acc + c.m, 0) * 100) / 100;
+
+      const cardCount = filteredData.filter(x => x.ct === 'card').length;
+      const cashCount = filteredData.filter(x => x.ct === 'cash').length;
+      const cardPercent = totalUnits > 0 ? Math.round((cardCount / totalUnits) * 1000) / 10 : 0;
+      const cashPercent = totalUnits > 0 ? Math.round((cashCount / totalUnits) * 1000) / 10 : 0;
+
+      const topProduct = productAgg.list.length > 0 ? productAgg.list[0] : null;
+
+      document.getElementById('kpi-total-revenue').innerText = '฿' + totalRevenue.toLocaleString('en-US', { minimumFractionDigits: 2 });
+      document.getElementById('kpi-total-units').innerHTML = totalUnits.toLocaleString() + ' <span class="text-sm font-normal text-slate-400">แก้ว</span>';
+      document.getElementById('kpi-avg-price').innerText = '฿' + avgPrice.toFixed(2);
+      
+      document.getElementById('kpi-rev-2024').innerText = '฿' + rev2024.toLocaleString('en-US', { minimumFractionDigits: 2 });
+      document.getElementById('kpi-rev-2025').innerText = '฿' + rev2025.toLocaleString('en-US', { minimumFractionDigits: 2 });
+      document.getElementById('kpi-units-2024').innerText = y2024.length.toLocaleString() + ' แก้ว';
+      document.getElementById('kpi-units-2025').innerText = y2025.length.toLocaleString() + ' แก้ว';
+
+      document.getElementById('kpi-card-percent').innerText = cardPercent + '%';
+      document.getElementById('kpi-cash-percent').innerText = cashPercent + '%';
+
+      if (topProduct) {
+        document.getElementById('kpi-top-product').innerText = topProduct.name;
+        document.getElementById('kpi-top-units').innerText = 'จำนวน ' + topProduct.totalUnits.toLocaleString() + ' แก้ว (' + topProduct.shareUnitsPercent + '%)';
+        document.getElementById('kpi-top-rev').innerText = '฿' + topProduct.totalRevenue.toLocaleString('en-US', { minimumFractionDigits: 2 });
+      } else {
+        document.getElementById('kpi-top-product').innerText = '-';
+        document.getElementById('kpi-top-units').innerText = '0 แก้ว';
+        document.getElementById('kpi-top-rev').innerText = '฿0.00';
+      }
+
+      // Filter summary status
+      let statusYear = state.year === 'all' ? 'ทุกปี' : 'ปี ' + state.year;
+      let statusSrc = state.source === 'all' ? 'รวมทุกเครื่อง' : (state.source === 'm1' ? 'เครื่องที่ 1' : 'เครื่องที่ 2');
+      let statusPay = state.payment === 'all' ? 'ทุกช่องทาง' : (state.payment === 'card' ? 'เฉพาะบัตร' : 'เฉพาะเงินสด');
+      document.getElementById('filter-status-text').innerText = `${statusYear} • ${statusSrc} • ${statusPay}`;
+      document.getElementById('filtered-count-badge').innerText = `สอดคล้อง ${totalUnits.toLocaleString()} รายการ (${(totalUnits / window.SALES_RAW_DATA.length * 100).toFixed(1)}%)`;
+    }
+
+    // Render Section 1: Popularity Charts (Most to Least)
+    function renderPopularityCharts(productAgg) {
+      let items = [...productAgg.list];
+
+      // Sort according to metric and sort direction
+      const metricKey = state.metric === 'units' ? 'totalUnits' : 'totalRevenue';
+      
+      if (state.sortOrder === 'desc') {
+        items.sort((a, b) => b[metricKey] - a[metricKey]);
+      } else {
+        items.sort((a, b) => a[metricKey] - b[metricKey]);
+      }
+
+      // Apply Top N slice
+      if (state.topN !== 'all') {
+        items = items.slice(0, parseInt(state.topN, 10));
+      }
+
+      // Update titles
+      const orderThai = state.sortOrder === 'desc' ? 'นิยมมากที่สุด ➡️ น้อยที่สุด' : 'นิยมน้อยที่สุด ➡️ มากที่สุด';
+      const metricThai = state.metric === 'units' ? 'จำนวนแก้ว (Units)' : 'ยอดขายรวม (บาท)';
+      document.getElementById('popularity-chart-title').innerHTML = `<span>📊 กราฟเปรียบเทียบอันดับ: ${orderThai}</span>`;
+      document.getElementById('popularity-chart-badge').innerText = state.topN === 'all' ? `ทั้งหมด ${items.length} รายการ` : `Top ${state.topN} รายการ`;
+      document.getElementById('popularity-metric-label').innerText = metricThai;
+
+      const categories = items.map(x => x.name);
+      const values = items.map(x => state.metric === 'units' ? x.totalUnits : x.totalRevenue);
+
+      // Gradient color shades
+      const colors = state.sortOrder === 'desc' 
+        ? ['#10b981', '#06b6d4', '#3b82f6', '#6366f1', '#8b5cf6', '#a855f7', '#d946ef', '#f43f5e', '#f97316', '#eab308']
+        : ['#eab308', '#f97316', '#f43f5e', '#d946ef', '#a855f7', '#8b5cf6', '#6366f1', '#3b82f6', '#06b6d4', '#10b981'];
+
+      if (state.chartView === 'bar') {
+        const options = {
+          series: [{
+            name: metricThai,
+            data: values
+          }],
+          chart: {
+            type: 'bar',
+            height: 420,
+            toolbar: { show: true, tools: { download: true, selection: false, zoom: false } },
+            background: 'transparent',
+            animations: { enabled: true, easing: 'easeinout', speed: 600 }
+          },
+          plotOptions: {
+            bar: {
+              borderRadius: 6,
+              horizontal: true,
+              barHeight: '72%',
+              distributed: true,
+              dataLabels: { position: 'bottom' }
+            }
+          },
+          colors: colors,
+          dataLabels: {
+            enabled: true,
+            textAnchor: 'start',
+            style: { colors: ['#ffffff'], fontSize: '11px', fontWeight: 600 },
+            formatter: function (val, opt) {
+              const item = items[opt.dataPointIndex];
+              const share = state.metric === 'units' ? item.shareUnitsPercent : item.shareRevenuePercent;
+              return state.metric === 'units' ? `${val.toLocaleString()} แก้ว (${share}%)` : `฿${val.toLocaleString()} (${share}%)`;
+            },
+            offsetX: 10
+          },
+          xaxis: {
+            categories: categories,
+            labels: {
+              style: { colors: '#94a3b8', fontSize: '11px' },
+              formatter: val => state.metric === 'units' ? val.toLocaleString() : '฿' + val.toLocaleString()
+            },
+            axisBorder: { color: '#334155' },
+            axisTicks: { color: '#334155' }
+          },
+          yaxis: {
+            labels: {
+              style: { colors: '#e2e8f0', fontSize: '12px', fontWeight: 500 }
+            }
+          },
+          grid: {
+            borderColor: '#1e293b',
+            strokeDashArray: 4
+          },
+          theme: { mode: 'dark' },
+          tooltip: {
+            theme: 'dark',
+            y: {
+              formatter: function (val, opt) {
+                const item = items[opt.dataPointIndex];
+                return `${state.metric === 'units' ? val.toLocaleString() + ' แก้ว' : '฿' + val.toLocaleString()} | ยอดขายรวม: ฿${item.totalRevenue.toLocaleString()} | เฉลี่ยแก้วละ: ฿${item.avgPrice}`;
+              }
+            }
+          },
+          legend: { show: false }
+        };
+
+        if (popularityChartInstance) {
+          popularityChartInstance.destroy();
+        }
+        popularityChartInstance = new ApexCharts(document.querySelector("#popularity-bar-chart"), options);
+        popularityChartInstance.render();
+      } else {
+        // Treemap view
+        const treemapData = items.map((x, idx) => ({
+          x: x.name,
+          y: state.metric === 'units' ? x.totalUnits : x.totalRevenue
+        }));
+
+        const options = {
+          series: [{ data: treemapData }],
+          chart: {
+            type: 'treemap',
+            height: 420,
+            background: 'transparent'
+          },
+          colors: ['#6366f1', '#10b981', '#06b6d4', '#f59e0b', '#ec4899', '#8b5cf6'],
+          plotOptions: {
+            treemap: {
+              distributed: true,
+              enableShades: true
+            }
+          },
+          theme: { mode: 'dark' }
+        };
+        if (popularityChartInstance) popularityChartInstance.destroy();
+        popularityChartInstance = new ApexCharts(document.querySelector("#popularity-bar-chart"), options);
+        popularityChartInstance.render();
+      }
+
+      // Render Donut Chart for Market Share
+      renderMarketShareDonut(productAgg);
+    }
+
+    function renderMarketShareDonut(productAgg) {
+      const top5 = productAgg.list.slice(0, 5);
+      const others = productAgg.list.slice(5);
+
+      const metricKey = state.metric === 'units' ? 'totalUnits' : 'totalRevenue';
+      const top5Labels = top5.map(x => x.name);
+      const top5Values = top5.map(x => x[metricKey]);
+
+      const othersSum = others.reduce((acc, c) => acc + c[metricKey], 0);
+      if (othersSum > 0) {
+        top5Labels.push('อื่น ๆ (' + others.length + ' เมนู)');
+        top5Values.push(Math.round(othersSum * 100) / 100);
+      }
+
+      const options = {
+        series: top5Values,
+        labels: top5Labels,
+        chart: {
+          type: 'donut',
+          height: 260,
+          background: 'transparent'
+        },
+        colors: ['#10b981', '#3b82f6', '#06b6d4', '#8b5cf6', '#f59e0b', '#64748b'],
+        stroke: { show: true, colors: ['#0f172a'], width: 2 },
+        plotOptions: {
+          pie: {
+            donut: {
+              size: '70%',
+              labels: {
+                show: true,
+                name: { show: true, fontSize: '11px', color: '#94a3b8' },
+                value: {
+                  show: true,
+                  fontSize: '16px',
+                  fontWeight: 700,
+                  color: '#ffffff',
+                  formatter: val => state.metric === 'units' ? parseFloat(val).toLocaleString() + ' แก้ว' : '฿' + parseFloat(val).toLocaleString()
+                },
+                total: {
+                  show: true,
+                  label: 'รวม',
+                  color: '#94a3b8',
+                  fontSize: '11px',
+                  formatter: w => {
+                    const sum = w.globals.seriesTotals.reduce((a, b) => a + b, 0);
+                    return state.metric === 'units' ? sum.toLocaleString() : '฿' + sum.toLocaleString();
+                  }
+                }
+              }
+            }
+          }
+        },
+        dataLabels: { enabled: false },
+        legend: {
+          position: 'bottom',
+          fontSize: '11px',
+          labels: { colors: '#cbd5e1' },
+          itemMargin: { horizontal: 5, vertical: 2 }
+        },
+        theme: { mode: 'dark' }
+      };
+
+      if (popularityDonutInstance) popularityDonutInstance.destroy();
+      popularityDonutInstance = new ApexCharts(document.querySelector("#popularity-donut-chart"), options);
+      popularityDonutInstance.render();
+    }
+
+    // Render Section 2: YoY Comparison connected to Popular Items
+    function renderYoYCharts(productAgg, filteredData) {
+      // Pick top 8 popular products
+      const topProducts = productAgg.list.slice(0, 8);
+      const categories = topProducts.map(x => x.name);
+
+      let series2024 = [];
+      let series2025 = [];
+
+      if (state.yoyMode === 'total') {
+        if (state.metric === 'units') {
+          series2024 = topProducts.map(x => x.y2024Units);
+          series2025 = topProducts.map(x => x.y2025Units);
+        } else {
+          series2024 = topProducts.map(x => x.y2024Revenue);
+          series2025 = topProducts.map(x => x.y2025Revenue);
+        }
+      } else {
+        // Run rate (per month velocity: 2024 = 10 months, 2025 = ~2.8 months)
+        if (state.metric === 'units') {
+          series2024 = topProducts.map(x => Math.round((x.y2024Units / 10) * 10) / 10);
+          series2025 = topProducts.map(x => Math.round((x.y2025Units / 2.8) * 10) / 10);
+        } else {
+          series2024 = topProducts.map(x => Math.round((x.y2024Revenue / 10) * 10) / 10);
+          series2025 = topProducts.map(x => Math.round((x.y2025Revenue / 2.8) * 10) / 10);
+        }
+      }
+
+      const metricUnit = state.metric === 'units' ? (state.yoyMode === 'total' ? 'แก้ว' : 'แก้ว/เดือน') : (state.yoyMode === 'total' ? 'บาท' : 'บาท/เดือน');
+
+      const options = {
+        series: [
+          { name: 'ปี 2024', data: series2024 },
+          { name: 'ปี 2025', data: series2025 }
+        ],
+        chart: {
+          type: 'bar',
+          height: 380,
+          background: 'transparent',
+          toolbar: { show: true }
+        },
+        plotOptions: {
+          bar: {
+            horizontal: false,
+            columnWidth: '55%',
+            borderRadius: 6
+          }
+        },
+        dataLabels: { enabled: false },
+        stroke: { show: true, width: 2, colors: ['transparent'] },
+        colors: ['#38bdf8', '#10b981'],
+        xaxis: {
+          categories: categories,
+          labels: {
+            style: { colors: '#cbd5e1', fontSize: '11px' },
+            rotate: -25,
+            trim: true
+          },
+          axisBorder: { color: '#334155' }
+        },
+        yaxis: {
+          title: {
+            text: state.metric === 'units' ? 'จำนวนแก้ว' : 'ยอดขาย (บาท)',
+            style: { color: '#94a3b8', fontSize: '11px' }
+          },
+          labels: {
+            style: { colors: '#94a3b8', fontSize: '11px' },
+            formatter: val => state.metric === 'units' ? val.toLocaleString() : '฿' + val.toLocaleString()
+          }
+        },
+        grid: {
+          borderColor: '#1e293b',
+          strokeDashArray: 4
+        },
+        fill: { opacity: 1 },
+        theme: { mode: 'dark' },
+        tooltip: {
+          theme: 'dark',
+          y: {
+            formatter: val => state.metric === 'units' ? `${val.toLocaleString()} ${metricUnit}` : `฿${val.toLocaleString()} ${metricUnit}`
+          }
+        },
+        legend: {
+          position: 'top',
+          horizontalAlign: 'right',
+          labels: { colors: '#cbd5e1' }
+        }
+      };
+
+      if (yoyChartInstance) yoyChartInstance.destroy();
+      yoyChartInstance = new ApexCharts(document.querySelector("#yoy-grouped-chart"), options);
+      yoyChartInstance.render();
+
+      // Render Monthly Trend Chart
+      renderMonthlyTrend(filteredData);
+
+      // Render Top 4 YoY Matrix Cards
+      renderYoYProductCards(topProducts.slice(0, 4));
+    }
+
+    function renderMonthlyTrend(filteredData) {
+      const monthMap = {};
+      filteredData.forEach(item => {
+        if (!monthMap[item.mth]) monthMap[item.mth] = { month: item.mth, units: 0, revenue: 0 };
+        monthMap[item.mth].units++;
+        monthMap[item.mth].revenue += item.m;
+      });
+
+      const months = Object.keys(monthMap).sort();
+      const unitValues = months.map(m => monthMap[m].units);
+      const revValues = months.map(m => Math.round(monthMap[m].revenue));
+
+      const options = {
+        series: [{
+          name: state.metric === 'units' ? 'จำนวนแก้ว' : 'ยอดขาย (บาท)',
+          data: state.metric === 'units' ? unitValues : revValues
+        }],
+        chart: {
+          type: 'area',
+          height: 260,
+          background: 'transparent',
+          toolbar: { show: false }
+        },
+        colors: ['#818cf8'],
+        dataLabels: { enabled: false },
+        stroke: { curve: 'smooth', width: 3 },
+        fill: {
+          type: 'gradient',
+          gradient: {
+            shadeIntensity: 1,
+            opacityFrom: 0.45,
+            opacityTo: 0.05,
+            stops: [0, 95, 100]
+          }
+        },
+        xaxis: {
+          categories: months,
+          labels: {
+            style: { colors: '#94a3b8', fontSize: '10px' },
+            rotate: -35
+          },
+          axisBorder: { color: '#334155' }
+        },
+        yaxis: {
+          labels: {
+            style: { colors: '#94a3b8', fontSize: '10px' },
+            formatter: val => state.metric === 'units' ? val : '฿' + val.toLocaleString()
+          }
+        },
+        grid: { borderColor: '#1e293b' },
+        theme: { mode: 'dark' },
+        tooltip: {
+          theme: 'dark',
+          y: {
+            formatter: val => state.metric === 'units' ? val.toLocaleString() + ' แก้ว' : '฿' + val.toLocaleString()
+          }
+        }
+      };
+
+      if (monthlyTrendInstance) monthlyTrendInstance.destroy();
+      monthlyTrendInstance = new ApexCharts(document.querySelector("#monthly-trend-chart"), options);
+      monthlyTrendInstance.render();
+    }
+
+    function renderYoYProductCards(top4) {
+      const container = document.getElementById('yoy-product-cards');
+      container.innerHTML = '';
+
+      top4.forEach((p, idx) => {
+        // Run rate calculation (monthly velocity)
+        const vel2024 = (p.y2024Units / 10).toFixed(1);
+        const vel2025 = (p.y2025Units / 2.8).toFixed(1);
+        const velGrowth = vel2024 > 0 ? (((vel2025 - vel2024) / vel2024) * 100).toFixed(1) : 0;
+        const isPositive = parseFloat(velGrowth) >= 0;
+
+        const card = document.createElement('div');
+        card.className = 'glass-card rounded-xl p-4 border border-slate-800 space-y-2';
+        card.innerHTML = `
+          <div class="flex items-center justify-between">
+            <span class="text-xs font-semibold px-2 py-0.5 rounded bg-slate-800 text-indigo-400 border border-slate-700">อันดับ #${idx + 1}</span>
+            <span class="text-[11px] font-bold ${isPositive ? 'text-emerald-400 bg-emerald-950/60' : 'text-rose-400 bg-rose-950/60'} px-2 py-0.5 rounded border ${isPositive ? 'border-emerald-800/60' : 'border-rose-800/60'}">
+              ${isPositive ? '▲ +' : '▼ '}${velGrowth}% อัตราขาย/เดือน
+            </span>
+          </div>
+          <h4 class="text-sm font-bold text-white truncate">${p.name}</h4>
+          <div class="grid grid-cols-2 gap-2 text-xs text-slate-400 pt-1 border-t border-slate-800">
+            <div>
+              <p class="text-[11px]">ปี 2024 (10 ด.)</p>
+              <p class="text-white font-semibold">${p.y2024Units} แก้ว <span class="text-slate-500 font-normal">(${vel2024}/ด.)</span></p>
+            </div>
+            <div>
+              <p class="text-[11px]">ปี 2025 (2.8 ด.)</p>
+              <p class="text-white font-semibold">${p.y2025Units} แก้ว <span class="text-emerald-400 font-normal">(${vel2025}/ด.)</span></p>
+            </div>
+          </div>
+        `;
+        container.appendChild(card);
+      });
+    }
+
+    // Render Section 3: Deep Dive Dimensions (Peak Hours, Day of Week, Machine)
+    function renderDeepDiveCharts(filteredData) {
+      // Peak Hours
+      const hourCounts = new Array(24).fill(0);
+      filteredData.forEach(item => {
+        if (item.h !== null && item.h >= 0 && item.h < 24) hourCounts[item.h]++;
+      });
+      // Filter hours 6 to 23
+      const hoursActive = [];
+      const hourVals = [];
+      for (let h = 6; h <= 23; h++) {
+        hoursActive.push(h + ':00');
+        hourVals.push(hourCounts[h]);
+      }
+
+      const peakOptions = {
+        series: [{ name: 'จำนวนแก้ว', data: hourVals }],
+        chart: { type: 'bar', height: 240, background: 'transparent', toolbar: { show: false } },
+        colors: ['#f59e0b'],
+        plotOptions: { bar: { borderRadius: 4, columnWidth: '60%' } },
+        dataLabels: { enabled: false },
+        xaxis: { categories: hoursActive, labels: { style: { colors: '#94a3b8', fontSize: '9px' } } },
+        yaxis: { labels: { style: { colors: '#94a3b8', fontSize: '10px' } } },
+        grid: { borderColor: '#1e293b' },
+        theme: { mode: 'dark' },
+        tooltip: { theme: 'dark' }
+      };
+      if (peakHoursInstance) peakHoursInstance.destroy();
+      peakHoursInstance = new ApexCharts(document.querySelector("#peak-hours-chart"), peakOptions);
+      peakHoursInstance.render();
+
+      // Day of Week (0 = Sun, 1 = Mon ... 6 = Sat)
+      const dayLabels = ['อาทิตย์', 'จันทร์', 'อังคาร', 'พุธ', 'พฤหัสฯ', 'ศุกร์', 'เสาร์'];
+      const dayCounts = [0, 0, 0, 0, 0, 0, 0];
+      filteredData.forEach(item => {
+        if (item.w !== undefined && item.w !== null) dayCounts[item.w]++;
+      });
+
+      const dayOptions = {
+        series: [{ name: 'จำนวนแก้ว', data: dayCounts }],
+        chart: { type: 'bar', height: 240, background: 'transparent', toolbar: { show: false } },
+        colors: ['#06b6d4'],
+        plotOptions: { bar: { borderRadius: 4, columnWidth: '55%' } },
+        dataLabels: { enabled: false },
+        xaxis: { categories: dayLabels, labels: { style: { colors: '#94a3b8', fontSize: '10px' } } },
+        yaxis: { labels: { style: { colors: '#94a3b8', fontSize: '10px' } } },
+        grid: { borderColor: '#1e293b' },
+        theme: { mode: 'dark' },
+        tooltip: { theme: 'dark' }
+      };
+      if (dayOfWeekInstance) dayOfWeekInstance.destroy();
+      dayOfWeekInstance = new ApexCharts(document.querySelector("#day-of-week-chart"), dayOptions);
+      dayOfWeekInstance.render();
+
+      // Machine 1 vs Machine 2 & Payment
+      const m1Count = filteredData.filter(x => x.s === 'm1').length;
+      const m2Count = filteredData.filter(x => x.s === 'm2').length;
+
+      const machOptions = {
+        series: [m1Count, m2Count],
+        labels: ['เครื่องที่ 1 (Machine 1)', 'เครื่องที่ 2 (Machine 2)'],
+        chart: { type: 'donut', height: 220, background: 'transparent' },
+        colors: ['#6366f1', '#10b981'],
+        stroke: { show: true, colors: ['#0f172a'], width: 2 },
+        plotOptions: {
+          pie: {
+            donut: {
+              size: '70%',
+              labels: {
+                show: true,
+                total: { show: true, label: 'รวมแก้ว', color: '#94a3b8', formatter: w => (m1Count + m2Count).toLocaleString() }
+              }
+            }
+          }
+        },
+        dataLabels: { enabled: false },
+        legend: { position: 'bottom', labels: { colors: '#cbd5e1' }, fontSize: '11px' },
+        theme: { mode: 'dark' }
+      };
+      if (machinePaymentInstance) machinePaymentInstance.destroy();
+      machinePaymentInstance = new ApexCharts(document.querySelector("#machine-payment-chart"), machOptions);
+      machinePaymentInstance.render();
+    }
+
+    // Render Section 4: Detailed Product Breakdown Table
+    function renderProductTable(productAgg) {
+      const tbody = document.getElementById('product-table-body');
+      tbody.innerHTML = '';
+
+      let items = [...productAgg.list];
+
+      // Filter by table search input
+      if (state.tableSearch) {
+        items = items.filter(x => x.name.toLowerCase().includes(state.tableSearch.toLowerCase()));
+      }
+
+      // Sort items
+      const sortCol = state.tableSortCol;
+      const isAsc = state.tableSortAsc;
+
+      items.sort((a, b) => {
+        let valA = a[sortCol];
+        let valB = b[sortCol];
+        if (typeof valA === 'string') {
+          return isAsc ? valA.localeCompare(valB) : valB.localeCompare(valA);
+        }
+        return isAsc ? valA - valB : valB - valA;
+      });
+
+      document.getElementById('table-row-count').innerText = `${items.length} รายการ`;
+
+      items.forEach((p, index) => {
+        const tr = document.createElement('tr');
+        tr.className = 'hover:bg-slate-800/40 transition border-b border-slate-800/40';
+
+        // Rank badge
+        let medal = '';
+        if (p.rank === 1) medal = '🥇 <span class="text-amber-400 font-bold">#1</span>';
+        else if (p.rank === 2) medal = '🥈 <span class="text-slate-300 font-bold">#2</span>';
+        else if (p.rank === 3) medal = '🥉 <span class="text-amber-600 font-bold">#3</span>';
+        else medal = `<span class="text-slate-400">#${p.rank}</span>`;
+
+        // YoY velocity growth
+        const vel2024 = p.y2024Units > 0 ? (p.y2024Units / 10).toFixed(1) : 0;
+        const vel2025 = p.y2025Units > 0 ? (p.y2025Units / 2.8).toFixed(1) : 0;
+        let trendBadge = '';
+        if (p.y2024Units === 0 && p.y2025Units > 0) {
+          trendBadge = '<span class="px-2 py-0.5 rounded text-[10px] font-bold bg-indigo-950 text-indigo-400 border border-indigo-800">✨ เมนูใหม่ 2025</span>';
+        } else if (p.y2024Units > 0 && p.y2025Units === 0) {
+          trendBadge = '<span class="px-2 py-0.5 rounded text-[10px] font-bold bg-slate-800 text-slate-400">ไม่มีขายปี 2025</span>';
+        } else {
+          const pct = (((vel2025 - vel2024) / vel2024) * 100).toFixed(1);
+          if (parseFloat(pct) >= 0) {
+            trendBadge = `<span class="px-2 py-0.5 rounded text-[10px] font-bold bg-emerald-950/80 text-emerald-400 border border-emerald-800/80">▲ +${pct}%</span>`;
+          } else {
+            trendBadge = `<span class="px-2 py-0.5 rounded text-[10px] font-bold bg-rose-950/80 text-rose-400 border border-rose-800/80">▼ ${pct}%</span>`;
+          }
+        }
+
+        tr.innerHTML = `
+          <td class="py-3 px-4 font-semibold">${medal}</td>
+          <td class="py-3 px-4">
+            <div class="font-bold text-white text-xs">${p.name}</div>
+            <div class="text-[11px] text-slate-500">${p.m1Units > 0 ? 'เครื่อง 1' : ''}${p.m1Units > 0 && p.m2Units > 0 ? ' + ' : ''}${p.m2Units > 0 ? 'เครื่อง 2' : ''}</div>
+          </td>
+          <td class="py-3 px-4 text-right">
+            <span class="font-extrabold text-white text-xs">${p.totalUnits.toLocaleString()}</span>
+            <span class="text-[11px] text-slate-400 block">${p.shareUnitsPercent}%</span>
+          </td>
+          <td class="py-3 px-4 text-right font-bold text-emerald-400 text-xs">฿${p.totalRevenue.toLocaleString('en-US', { minimumFractionDigits: 2 })}</td>
+          <td class="py-3 px-4 text-right">
+            <div class="w-16 bg-slate-800 rounded-full h-1.5 ml-auto overflow-hidden">
+              <div class="bg-indigo-500 h-1.5 rounded-full" style="width: ${Math.min(100, p.shareUnitsPercent * 3.5)}%"></div>
+            </div>
+            <span class="text-[11px] text-slate-400">${p.shareUnitsPercent}%</span>
+          </td>
+          <td class="py-3 px-4 text-right text-slate-300 text-xs">฿${p.avgPrice.toFixed(2)}</td>
+          <td class="py-3 px-4 text-right text-sky-300 text-xs">${p.y2024Units.toLocaleString()}</td>
+          <td class="py-3 px-4 text-right text-emerald-300 text-xs">${p.y2025Units.toLocaleString()}</td>
+          <td class="py-3 px-4 text-center">${trendBadge}</td>
+        `;
+
+        tbody.appendChild(tr);
+      });
+    }
+
+    // Sort table helper
+    window.sortTable = function(colName) {
+      if (state.tableSortCol === colName) {
+        state.tableSortAsc = !state.tableSortAsc;
+      } else {
+        state.tableSortCol = colName;
+        state.tableSortAsc = (colName === 'rank' || colName === 'name');
+      }
+      
+      // Update sort icons
+      document.querySelectorAll('.sort-icon').forEach(icon => icon.innerText = '↕️');
+      const activeIcon = document.getElementById(`sort-${colName}-icon`);
+      if (activeIcon) activeIcon.innerText = state.tableSortAsc ? '⬆️' : '⬇️';
+
+      const filtered = getFilteredData();
+      const productAgg = aggregateProducts(filtered);
+      renderProductTable(productAgg);
+    };
+
+    // Full dashboard refresh
+    function refreshDashboard() {
+      const filtered = getFilteredData();
+      const productAgg = aggregateProducts(filtered);
+
+      updateKPIs(filtered, productAgg);
+      renderPopularityCharts(productAgg);
+      renderYoYCharts(productAgg, filtered);
+      renderDeepDiveCharts(filtered);
+      renderProductTable(productAgg);
+    }
+
+    // Setup Event Listeners
+    function setupEventListeners() {
+      // Year filter buttons
+      document.querySelectorAll('.filter-year-btn').forEach(btn => {
+        btn.addEventListener('click', () => {
+          document.querySelectorAll('.filter-year-btn').forEach(b => {
+            b.classList.remove('bg-indigo-600', 'text-white', 'shadow-sm');
+            b.classList.add('text-slate-400');
+          });
+          btn.classList.remove('text-slate-400');
+          btn.classList.add('bg-indigo-600', 'text-white', 'shadow-sm');
+          state.year = btn.getAttribute('data-year');
+          refreshDashboard();
+        });
+      });
+
+      // Machine / Source filter
+      document.getElementById('filter-source').addEventListener('change', (e) => {
+        state.source = e.target.value;
+        refreshDashboard();
+      });
+
+      // Payment filter
+      document.getElementById('filter-payment').addEventListener('change', (e) => {
+        state.payment = e.target.value;
+        refreshDashboard();
+      });
+
+      // Metric toggle buttons
+      document.querySelectorAll('.metric-btn').forEach(btn => {
+        btn.addEventListener('click', () => {
+          document.querySelectorAll('.metric-btn').forEach(b => {
+            b.classList.remove('bg-indigo-600', 'text-white', 'shadow-sm');
+            b.classList.add('text-slate-400');
+          });
+          btn.classList.remove('text-slate-400');
+          btn.classList.add('bg-indigo-600', 'text-white', 'shadow-sm');
+          state.metric = btn.getAttribute('data-metric');
+          refreshDashboard();
+        });
+      });
+
+      // Top N filter
+      document.getElementById('filter-top-n').addEventListener('change', (e) => {
+        state.topN = e.target.value;
+        refreshDashboard();
+      });
+
+      // Sort order filter
+      document.getElementById('filter-sort-order').addEventListener('change', (e) => {
+        state.sortOrder = e.target.value;
+        refreshDashboard();
+      });
+
+      // Product search
+      document.getElementById('search-product').addEventListener('input', (e) => {
+        state.searchTerm = e.target.value.trim();
+        refreshDashboard();
+      });
+
+      // Table search
+      document.getElementById('table-search-input').addEventListener('input', (e) => {
+        state.tableSearch = e.target.value.trim();
+        const filtered = getFilteredData();
+        const productAgg = aggregateProducts(filtered);
+        renderProductTable(productAgg);
+      });
+
+      // Chart view toggle (Bar vs Treemap)
+      document.getElementById('btn-chart-view-bar').addEventListener('click', () => {
+        document.getElementById('btn-chart-view-bar').className = 'px-2.5 py-1 rounded-lg bg-indigo-600 text-white font-medium shadow-sm';
+        document.getElementById('btn-chart-view-treemap').className = 'px-2.5 py-1 rounded-lg bg-slate-800 text-slate-300 hover:text-white border border-slate-700';
+        state.chartView = 'bar';
+        const filtered = getFilteredData();
+        const productAgg = aggregateProducts(filtered);
+        renderPopularityCharts(productAgg);
+      });
+
+      document.getElementById('btn-chart-view-treemap').addEventListener('click', () => {
+        document.getElementById('btn-chart-view-treemap').className = 'px-2.5 py-1 rounded-lg bg-indigo-600 text-white font-medium shadow-sm';
+        document.getElementById('btn-chart-view-bar').className = 'px-2.5 py-1 rounded-lg bg-slate-800 text-slate-300 hover:text-white border border-slate-700';
+        state.chartView = 'treemap';
+        const filtered = getFilteredData();
+        const productAgg = aggregateProducts(filtered);
+        renderPopularityCharts(productAgg);
+      });
+
+      // YoY Mode toggle (Total vs Velocity)
+      document.getElementById('btn-yoy-mode-total').addEventListener('click', () => {
+        document.getElementById('btn-yoy-mode-total').className = 'px-2.5 py-1 rounded-lg bg-purple-600 text-white font-medium shadow-sm';
+        document.getElementById('btn-yoy-mode-velocity').className = 'px-2.5 py-1 rounded-lg bg-slate-800 text-slate-300 hover:text-white border border-slate-700';
+        state.yoyMode = 'total';
+        const filtered = getFilteredData();
+        const productAgg = aggregateProducts(filtered);
+        renderYoYCharts(productAgg, filtered);
+      });
+
+      document.getElementById('btn-yoy-mode-velocity').addEventListener('click', () => {
+        document.getElementById('btn-yoy-mode-velocity').className = 'px-2.5 py-1 rounded-lg bg-purple-600 text-white font-medium shadow-sm';
+        document.getElementById('btn-yoy-mode-total').className = 'px-2.5 py-1 rounded-lg bg-slate-800 text-slate-300 hover:text-white border border-slate-700';
+        state.yoyMode = 'velocity';
+        const filtered = getFilteredData();
+        const productAgg = aggregateProducts(filtered);
+        renderYoYCharts(productAgg, filtered);
+      });
+
+      // Reset filters button
+      document.getElementById('btn-reset-filters').addEventListener('click', () => {
+        state.year = 'all';
+        state.source = 'all';
+        state.payment = 'all';
+        state.metric = 'units';
+        state.topN = 10;
+        state.sortOrder = 'desc';
+        state.searchTerm = '';
+        state.tableSearch = '';
+
+        // Reset UI inputs
+        document.querySelectorAll('.filter-year-btn').forEach(b => {
+          if (b.getAttribute('data-year') === 'all') {
+            b.classList.add('bg-indigo-600', 'text-white', 'shadow-sm');
+            b.classList.remove('text-slate-400');
+          } else {
+            b.classList.remove('bg-indigo-600', 'text-white', 'shadow-sm');
+            b.classList.add('text-slate-400');
+          }
+        });
+        document.querySelectorAll('.metric-btn').forEach(b => {
+          if (b.getAttribute('data-metric') === 'units') {
+            b.classList.add('bg-indigo-600', 'text-white', 'shadow-sm');
+            b.classList.remove('text-slate-400');
+          } else {
+            b.classList.remove('bg-indigo-600', 'text-white', 'shadow-sm');
+            b.classList.add('text-slate-400');
+          }
+        });
+        document.getElementById('filter-source').value = 'all';
+        document.getElementById('filter-payment').value = 'all';
+        document.getElementById('filter-top-n').value = '10';
+        document.getElementById('filter-sort-order').value = 'desc';
+        document.getElementById('search-product').value = '';
+        document.getElementById('table-search-input').value = '';
+
+        refreshDashboard();
+      });
+
+      // Export CSV button
+      document.getElementById('btn-export-csv').addEventListener('click', () => {
+        const filtered = getFilteredData();
+        const productAgg = aggregateProducts(filtered);
+        
+        let csvContent = "data:text/csv;charset=utf-8,\uFEFF";
+        csvContent += "Rank,Product Name,Total Units,Total Revenue (THB),Share Percent,Avg Price,2024 Units,2025 Units\n";
+        productAgg.list.forEach(p => {
+          csvContent += `"${p.rank}","${p.name}",${p.totalUnits},${p.totalRevenue},${p.shareUnitsPercent}%,${p.avgPrice},${p.y2024Units},${p.y2025Units}\n`;
+        });
+
+        const encodedUri = encodeURI(csvContent);
+        const link = document.createElement("a");
+        link.setAttribute("href", encodedUri);
+        link.setAttribute("download", `coffee_sales_summary_${new Date().toISOString().slice(0,10)}.csv`);
+        document.body.appendChild(link);
+        link.click();
+        document.body.removeChild(link);
+      });
+    }
+
+    // Initialize application when DOM and scripts are ready
+    window.addEventListener('DOMContentLoaded', () => {
+      // Check data availability
+      if (!window.SALES_RAW_DATA || window.SALES_RAW_DATA.length === 0) {
+        console.error('SALES_RAW_DATA not found. Please ensure data.js is loaded.');
+        return;
+      }
+      setupEventListeners();
+      refreshDashboard();
+    });
+  </script>
+</body>
+</html>
